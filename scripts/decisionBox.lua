@@ -7,8 +7,8 @@ DecisionBox.__index = DecisionBox
 function DecisionBox.create(arrayRotation,colorNames,colorArray,layer,confirmImage,cancelImage,titleText,descriptionText)
     local object = {}
     setmetatable(object,DecisionBox)
-    object.arrayX={300, 300, 300, 300, 300}
-	object.arrayY={350, 350, 350, 350, 350}
+    object.arrayX={340, 340, 444, 410, 460}
+	object.arrayY={730, 310, 310, 504, 720}
 	object.arrayRotation=arrayRotation
 	object.colorNames=colorNames
 	object.colorArray=colorArray
