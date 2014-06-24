@@ -25,6 +25,7 @@ local CARDANIMATIONNAMES = ({
 })
 local COLORNAMES = {"Amarelo","Azul","Rosa","Vermelho", "Verde"}
 local FONT = "Garamond Premr Pro"
+--local FONT = "Garamond Premier Pro Bold" -- Mac
 
 -- Layers
 local boardLayer = nil
@@ -98,7 +99,7 @@ function initializeGame(playersNumber, functionAfterFade)
 	
 	layers = {boardLayer,playersLayer,cardsLayer,hudLayer,blockLayer,featuredLayer,barLayer,messageLayer}
 	
-	board = display.newImageRect( boardLayer,IMGDIR.."tabuleiro.png", 760, 1024)
+	board = display.newImageRect( boardLayer,IMGDIR.."tabuleiro.png", 769, 1024)
 	
 	-- Cards image
 	local cardCount=1
@@ -129,6 +130,7 @@ function initializeGame(playersNumber, functionAfterFade)
 	deadIcon = display.newImageRect( hudLayer, IMGDIR.."lapide.png", 58, 85 )
 	deadIcon.alpha = 0
 	
+	local counterFontSize=32
 	for i = 1, playerCount do 
 		-- Player HUD
 		local playersHUDPath = ({"playerAmareloHud.png","playerAzulHud.png","playerRosaHud.png","playerVermelhoHud.png","playerVerdeHud.png"})[i]
@@ -140,13 +142,13 @@ function initializeGame(playersNumber, functionAfterFade)
 		-- Initial position before the HUD appears at screen
 		playersHUD[i].x = ({-hudWidth, -hudWidth, hudWidth, hudWidth, hudWidth})[i] + hudFinalX
 		playersHUD[i].y = ({hudHeight, -hudHeight, -hudHeight, 0, hudHeight})[i] + hudFinalY
-	    transition.to(playersHUD[i], {delay=1000+400*i, time=2000, x=hudFinalX, y=hudFinalY, transition=easing.inOutQuad})
+	    transition.to(playersHUD[i], {delay=500+400*i, time=3000, x=hudFinalX, y=hudFinalY, transition=easing.inOutQuad})
 		playersHUD[i]:addEventListener( "touch", playerTouch)
 		
 		-- Birds counter
-		playersHUDBirds[i] = display.newText({parent=hudLayer, text="0",font=FONT, fontSize=22})
-		playersHUDBirds[i].x = ({126, 166, 674, 694, 634})[i]
-		playersHUDBirds[i].y = ({900, 84, 124, 530, 934})[i]
+		playersHUDBirds[i] = display.newText({parent=hudLayer, text="0",font=FONT, fontSize=counterFontSize})
+		playersHUDBirds[i].x = ({116, 140, 684, 704, 660})[i]
+		playersHUDBirds[i].y = ({918, 80, 104, 524, 944})[i]
 		playersHUDBirds[i]:setFillColor(PLAYERSTEXTCOLOR[i][1],PLAYERSTEXTCOLOR[i][2],PLAYERSTEXTCOLOR[i][3])
 		playersHUDBirds[i].anchorX = 0.5
 		playersHUDBirds[i].rotation = PLAYERSROTATION[i]
@@ -154,9 +156,9 @@ function initializeGame(playersNumber, functionAfterFade)
 		transition.to ( playersHUDBirds[i], { delay=5000, time=2000, alpha=1, transition=easing.inOutQuad})
 		
 		-- Fish counter
-		playersHUDFish[i] = display.newText({parent=hudLayer, text="0",font=FONT, fontSize=22})
-		playersHUDFish[i].x = ({162, 126, 634, 694, 674})[i]
-		playersHUDFish[i].y = ({938, 124, 84, 478, 900})[i]
+		playersHUDFish[i] = display.newText({parent=hudLayer, text="0",font=FONT, fontSize=counterFontSize})
+		playersHUDFish[i].x = ({142, 110, 660, 704, 692})[i]
+		playersHUDFish[i].y = ({952, 104, 72, 480, 920})[i]
 		playersHUDFish[i]:setFillColor(PLAYERSTEXTCOLOR[i][1],PLAYERSTEXTCOLOR[i][2],PLAYERSTEXTCOLOR[i][3])
 		playersHUDFish[i].anchorX = 0.5
 		playersHUDFish[i].rotation = PLAYERSROTATION[i]
@@ -165,8 +167,8 @@ function initializeGame(playersNumber, functionAfterFade)
 		
 		-- Players Icons
 		local playersIconsPath = ({"playerAmarelo.png","playerAzul.png","playerRosa.png","playerVermelho.png","playerVerde.png"})[i] 
-		playersIcons[i] = display.newImageRect( playersLayer, IMGDIR..playersIconsPath, 54, 98 )
-		playersIcons[i].x = ({340, 380, 420, 460, 500})[i]
+		playersIcons[i] = display.newImageRect( playersLayer, IMGDIR..playersIconsPath, 45, 76 )
+		playersIcons[i].x = ({300, 340, 380, 420, 460})[i]
 		playersIcons[i].y = playerIconY(i)
 	end
 
@@ -174,7 +176,7 @@ function initializeGame(playersNumber, functionAfterFade)
 	for i = 1, playerCount+1 do 
 		local mainBarsPaths = {"barraYellow.png","barraBlue.png","barraPink.png","barraRed.png","barraGreen.png","barraNeutra.png"}
 		mainBars[i] = display.newImageRect( barLayer, IMGDIR..mainBarsPaths[i], 760, 1024 )
-		if i<=playerCount then mainBars.isVisible = false end
+		if i<=playerCount then mainBars[i].isVisible = false end
 	end
 	
 	-- Black block used at decision time
@@ -183,7 +185,7 @@ function initializeGame(playersNumber, functionAfterFade)
 	blackBlock.alpha=0
 	
 	-- Main HUD text
-	mainBarText = display.newText({parent=barLayer, x=18, y=display.viewableContentHeight/2, text="",font=FONT, fontSize=32})
+	mainBarText = display.newText({parent=barLayer, x=16, y=display.viewableContentHeight/2, text="",font=FONT, fontSize=18})
 	mainBarText.anchorX = 0.5
 	mainBarText.anchorY = 0.5
 	mainBarText.rotation = 90	
@@ -209,7 +211,7 @@ function initializeGame(playersNumber, functionAfterFade)
 	decisionBox = DecisionBox.create(PLAYERSROTATION,COLORNAMES,PLAYERSTEXTCOLOR,decisionBoxLayer,confirmButton,cancelButton,titleText,descriptionText)	
 	
 	-- Fade all layers and execute functionAfterFade after fade
-	local delay=3000
+	local delay=4000
 	for i=1, #layers do
 		transFade( layers[i], 0, delay)
 	end
@@ -256,7 +258,7 @@ function declareVictory(playerIndex)
 	local restart = function() 
 		finalizeGame()
 		audio.fadeOut({channel=0})
-		mostrarMenu()
+		mostrarIntro()
 	end
 	timer.performWithDelay(400,function() messageLayer:addEventListener( "touch",restart) end)
 end
@@ -272,7 +274,7 @@ function nextTurn()
 	playerTurn=firstPlayer
 	highlightPlayer(playerTurn)
 	local after = function() -- Remove card, revive everyone and show step text
-		local delay=400
+		local delay=500
 		setTouchWaitTime(delay)
 		for i = 1, playerCount do
 			if players[i].card>0 then removePlayerCard(i) end
@@ -515,8 +517,8 @@ function removePlayerCard(playerIndex)
 end
 
 function playerCardXYRotation(playerIndex)
-	local x = ({167, 166, 618, 660, 624})[playerIndex]
-	local y = ({887, 144, 130, 512, 890})[playerIndex]
+	local x = ({137, 140, 646, 684, 654})[playerIndex]
+	local y = ({917, 110, 110, 512, 920})[playerIndex]
 	return x,y,PLAYERSROTATION[playerIndex]
 end
 
@@ -542,8 +544,8 @@ function killPlayer(playerIndex)
 	AudioUtil.playSE("Die.wav")
 	timer.performWithDelay(1200,function() AudioUtil.playBGM("sound_inGame.mp3") end)
 	-- Change the only icon position, since only only one player can be dead per turn
-	deadIcon.x = ({177, 216, 608, 610, 634})[playerIndex]
-	deadIcon.y = ({837, 154, 180, 542, 880})[playerIndex]	
+	deadIcon.x = ({157, 196, 628, 630, 604})[playerIndex]
+	deadIcon.y = ({857, 134, 160, 542, 900})[playerIndex]	
 	deadIcon.rotation=PLAYERSROTATION[playerIndex]
 	transition.to(deadIcon, { time=400, alpha=1, transition=easing.inOutQuad})
 end
@@ -905,7 +907,7 @@ end
 function cancelTouch (event,touchByBot)
 	if validTouch(event, touchByBot) and decisionTime then
 		if step == STEP_SELECTCARD then
-			setTouchWaitTime(1000)
+			setTouchWaitTime(1600)
 			deactivateDecisionTime()
 		elseif step == STEP_MOVE then
 			nextMove()
