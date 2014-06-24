@@ -51,7 +51,7 @@ function Player:getHalfBirdsAndFish()
 			stolenBirds = stolenBirds+1
 		end
 	end
-	return {stolenBirds,stolenFish}
+	return stolenBirds,stolenFish
 end
 
 function Player:printStatus() -- Debug purposes

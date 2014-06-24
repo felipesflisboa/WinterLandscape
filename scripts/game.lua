@@ -79,7 +79,7 @@ local turnNumber=0
 --- Initialize/Finalize functions
 --------------------------------------------------
 
-function initializeGame(playersNumber, functionAfterFade)
+function initializeGame(playersNumber)
 	playerCount = playersNumber==1 and 5 or playersNumber -- When 1 is selected, is a 5 player game with bots
 	
 	-- Initialize player objects
@@ -215,11 +215,10 @@ function initializeGame(playersNumber, functionAfterFade)
 	for i=1, #layers do
 		transFade( layers[i], 0, delay)
 	end
-	timer.performWithDelay(delay,functionAfterFade)
 	
 	gameOccurring=true
 	
-	AudioUtil.playBGM("sound_inGame.mp3")
+	timer.performWithDelay(800,function() AudioUtil.playBGM("sound_inGame.mp3") end)
 	firstPlayer=math.random(playerCount)
 	setTouchWaitTime(delay+1600)
 	timer.performWithDelay(delay+1600,nextTurn)
@@ -312,6 +311,7 @@ function initializeActionTurn()
 		birdsReceived = (players[i].card==CARTA_CACADOR and not players[i].dead) and 2 or 1 
 		setPlayerBirds(i,players[i].birds+birdsReceived)
 	end
+	AudioUtil.playSE("pistolBegin.wav")
 	nextAction(true)
 end
 
@@ -322,7 +322,6 @@ function nextAction(firstTurn) -- If firstTurn == true then doesn't calls nextPl
 	if firstTurn or nextPlayerTurn() then
 		if (players[playerTurn].card==CARTA_LADRAO or players[playerTurn].card==CARTA_CORVO) and not players[playerTurn].dead then
 			-- If the player need a target selection
-			print("Time left="..touchTimeout-system.getTimer())
 			highlightPlayer(playerTurn)
 			local highlight = function()
 				highlightPlayerHUDs(playerTurn)
@@ -330,12 +329,13 @@ function nextAction(firstTurn) -- If firstTurn == true then doesn't calls nextPl
 				aiCommand(nil,1600)
 			end
 			timer.performWithDelay(400+2,highlight)
-		elseif not players[playerTurn].dead and (players[playerTurn].card==CARTA_PATINADOR or players[playerTurn].card==CARTA_PESCADOR) then
-			if players[playerTurn].card==CARTA_PESCADOR then	-- Transform bird into fish !
+		elseif not players[playerTurn].dead and ((players[playerTurn].card==CARTA_PATINADOR and players[playerTurn]:getPoints()>0) or (players[playerTurn].card==CARTA_PESCADOR and players[playerTurn].birds>0)) then
+			if players[playerTurn].card==CARTA_PESCADOR then	-- Transform bird into fish
+				AudioUtil.playSE("Draw.wav")
 				setPlayerFish(playerTurn,players[playerTurn].fish+players[playerTurn].birds)
 				setPlayerBirds(playerTurn,0)
 			elseif players[playerTurn].card==CARTA_PATINADOR then
-				movePlayerConsumingResources(playerTurn, true)
+				movePlayerConsumingResources(playerTurn)
 			end
 			if not gameOccurring then return end 
 			highlightPlayer(playerTurn)
@@ -382,7 +382,9 @@ function nextMove()
 			end
 		end
 		if playerThatDefinesNewOrderIndex==0 then
-			nextTurn()
+			local delay=2000
+			setTouchWaitTime(delay)
+			timer.performWithDelay(delay,nextTurn)
 		else
 			step = STEP_NEWORDER
 			playerTurn=playerThatDefinesNewOrderIndex
@@ -434,6 +436,11 @@ end
 
 function movePlayerConsumingResources(playerIndex,double)
 	double=double or false
+	if double then
+		AudioUtil.playSE("footstepMetal.mp3",2)
+	else
+		AudioUtil.playSE("wood_footsteps_1.wav",2)
+	end
 	distance=players[playerIndex]:moveConsumingResources(double)
 	setPlayerBirds(playerIndex,0) -- Only for updating the counters
 	setPlayerFish(playerIndex,0) -- Only for updating the counters
@@ -468,7 +475,6 @@ end
 
 -- Highlight all player HUD except playerIndex
 function highlightPlayerHUDs(playerIndex)
-	print("highlightPlayerHUDs")
 	for i = 1, playerCount do
 		if i~=playerIndex then 
 			featuredLayer:insert(cards[players[i].card])
@@ -481,7 +487,6 @@ function highlightPlayerHUDs(playerIndex)
 end
 
 function highlightPlayerHUDsDeactivate()
-	print("highlightPlayerHUDsDeactivate")
 	for i = 1, playerCount do 
 		hudLayer:insert(cards[players[i].card]) 
 	end
@@ -690,6 +695,7 @@ function aiCommand(dummy,delay) -- Dummy is for problems when calling using clos
 							score=firstPlayerAdvantage
 						elseif cardIndex==CARTA_PATINADOR then 
 							score=players[playerTurn]:getPoints()*2
+							if (players[playerTurn]:getPoints()+1)*2+players[playerTurn].boardPosition>=DISTANCEGOAL then score = 20 end
 						elseif cardIndex==CARTA_PESCADOR then 
 							score=players[playerTurn].birds*4
 						end
@@ -712,7 +718,6 @@ function aiCommand(dummy,delay) -- Dummy is for problems when calling using clos
 			local selectedCommand = Util.selectKeyFromValuePercent(commands)
 			playerTouch(nil, selectedCommand)
 		elseif step == STEP_ACTION then
-			print("ai STEP_ACTION")
 			local onlyZero = true
 			for i = 1, playerCount do 
 				if i~=playerTurn then
@@ -729,17 +734,15 @@ function aiCommand(dummy,delay) -- Dummy is for problems when calling using clos
 			-- Avoiding problems when everybody have no resources
 			commands = onlyZero and Util.cutLowValues(commands,0,1) or Util.cutLowValues(commands,4,0)
 			local selectedCommand = Util.selectKeyFromValuePercent(commands)
-			print("selectedCommand="..selectedCommand)
 			playerTouch(nil, selectedCommand)
 		elseif step == STEP_MOVE then
-			print("ai STEP_MOVE")
 			local score = players[playerTurn]:getPoints()
+			if score+players[playerTurn].boardPosition>=DISTANCEGOAL then score=10 end
 			if score>2 then score=score*2 end
 			commands[1]=score -- confirm
 			commands[2]=3 -- cancel
 			commands = Util.cutLowValues(commands,6,0)
 			local selectedCommand = Util.selectKeyFromValuePercent(commands)
-			print("selectedCommand="..selectedCommand)
 			if selectedCommand==1 then
 				confirmTouch(nil,true)
 			else
@@ -763,7 +766,6 @@ function validTouch(event, touchByBot)
 end
 
 function setTouchWaitTime(milliseconds)
-	print("setTouchWaitTime milliseconds="..milliseconds)
 	touchTimeout=system.getTimer()+milliseconds
 end
 
@@ -773,8 +775,7 @@ end
 
 function cardTouch (event,indexTouchByBot)
 	local cardIndex=0
-	if validTouch(event, indexTouchByBot) then
-		print("validTouch indexTouchByBot="..tostring(indexTouchByBot))
+	if validTouch(event, indexTouchByBot) then	
 		if indexTouchByBot then
 			cardIndex=indexTouchByBot
 		else
@@ -843,27 +844,27 @@ function playerTouch (event,indexTouchByBot)
 			if playerIndex~=playerTurn then -- Clicked at the target
 				if players[playerTurn].card==CARTA_LADRAO then
 					stolenPlayer=playerIndex
-					local stolen = players[playerIndex]:getHalfBirdsAndFish()
-					local stolenBirds=stolen[1]
-					local stolenFish=stolen[2]
+					local stolenBirds, stolenFish=players[playerIndex]:getHalfBirdsAndFish()
 					setPlayerFish(playerIndex,players[playerIndex].fish-stolenFish)
 					setPlayerBirds(playerIndex,players[playerIndex].birds-stolenBirds)
 					setPlayerFish(playerTurn,players[playerTurn].fish+stolenFish)
 					setPlayerBirds(playerTurn,players[playerTurn].birds+stolenBirds)
 					highlightPlayer(playerTurn)
+					AudioUtil.playSE("hegrenade_fire.wav")
 					actionPerformed()
 				elseif players[playerTurn].card==CARTA_CORVO then
 					stolenPlayer=playerIndex
 					local stolenPoints = 0
 					if players[playerIndex].fish>0 then
 						stolenPoints=2
-						setPlayerFish(playerIndex,players[playerIndex].fish-2)
+						setPlayerFish(playerIndex,players[playerIndex].fish-1)
 					else
 						-- If is less than 2, steal all.
 						stolenPoints = players[playerIndex].birds<2 and players[playerIndex].birds or 2
 						setPlayerBirds(playerIndex,players[playerIndex].birds-stolenPoints)
 					end
 					players[playerTurn].boardPosition = players[playerTurn].boardPosition+stolenPoints
+					AudioUtil.playSE("fallDamage.mp3")
 					movePlayerEffects(playerTurn,stolenPoints)
 					actionPerformed()
 				end
@@ -894,10 +895,8 @@ function confirmTouch (event,touchByBot)
 				killChoice()
 			end
 		elseif step == STEP_MOVE then
-			local playerTurnNow=playerTurn -- Print purposes
-			print("playerTurnNow="..playerTurnNow.." players[playerTurnNow]:getPoints()="..players[playerTurnNow]:getPoints().." players[playerTurnNow].boardPosition="..players[playerTurnNow].boardPosition)
+			AudioUtil.playSE("wood_footsteps_1.wav",2)
 			movePlayerConsumingResources(playerTurn)
-			print("2 playerTurnNow="..playerTurnNow.." players[playerTurnNow]:getPoints()="..players[playerTurnNow]:getPoints().." players[playerTurnNow].boardPosition="..players[playerTurnNow].boardPosition)
 			nextMove()
 		end		
 		return true

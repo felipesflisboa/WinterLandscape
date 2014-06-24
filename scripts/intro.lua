@@ -38,31 +38,17 @@ end
 
 --BG  do Menu
 function mostrarIntro()
-	timer.performWithDelay(2400,function() AudioUtil.playBGM("sound_splashScreen.mp3",0) end)
+	timer.performWithDelay(800,function() AudioUtil.playBGM("sound_splashScreen.mp3",0) end)
 	mostrarMenu()
 end
 
 function mostrarMenu(event)
 	travarBotoes=false
-
-	--local target = event.target
-
 	transition.to(bg,{time=800, alpha=1, transition=easing.InOutQuad})
 	transition.to(botoesLayers,{time=800, alpha=1, transition=easing.InOutQuad})
-
 	transition.to(bgCredito,{time=800, alpha=0, transition=easing.InOutQuad})
 	transition.to(bgComoJogar,{time=800, alpha=0, transition=easing.InOutQuad})
-
-	--target:removeEventListener( "tap", mostrarMenu)
-
 	return true
-
-	--[[
-	bgCredito.alpha = 0
-	bgComoJogar.alpha = 0
-	bg.alpha = 1
-	botoesLayers.alpha = 1
-	]]
 end
 
 function inicializar()
@@ -90,20 +76,17 @@ function inicializar()
 	botao2p.id = "botao2p"
 	botao2p:setFillColor(0.5, 0.5, 0.5, 1)
 
-
 	local botao3p = display.newImageRect( botoesLayers, IMGDIR.."botao3p.png", 55, 68 )
 	botao3p.x = 312 
 	botao3p.y = 740
 	transFade (botao3p, 1200, 2000)
 	botao3p.id = "botao3p"
 
-
 	local botao4p = display.newImageRect( botoesLayers, IMGDIR.."botao4p.png", 55, 68 )
 	botao4p.x = 312
 	botao4p.y = 830
 	transFade (botao4p, 1400, 2000)
 	botao4p.id = "botao4p"
-
 
 	local botao5p = display.newImageRect( botoesLayers, IMGDIR.."botao5p.png", 55, 68 )
 	botao5p.x = 311
@@ -117,7 +100,6 @@ function inicializar()
 	botaoCredito.y = 130 
 	transFade (botaoCredito, 1800, 2000)
 	botaoCredito.id = "botaoCredito"
-
 
 	local botaoComo = display.newImageRect( botoesLayers, IMGDIR.."botaoComo.png", 48, 185 )
 	botaoComo.x = 0
@@ -137,27 +119,27 @@ end
 --Funcoes dos Botões
 function tapBotao1p()
 	esconderMenu()
-	initializeGame(1,esconderMenu)
+	initializeGame(1)
 end
 
 function tapBotao2p ()
 	esconderMenu()
-	initializeGame(2,esconderMenu)
+	initializeGame(2)
 end
 
 function tapBotao3p ()
 	esconderMenu()
-	initializeGame(3,esconderMenu)
+	initializeGame(3)
 end
 
 function tapBotao4p ()
 	esconderMenu()
-	initializeGame(4,esconderMenu)
+	initializeGame(4)
 end
 
 function tapBotao5p ()
 	esconderMenu()
-	initializeGame(5,esconderMenu)
+	initializeGame(5)
 end
 
 function tapBotaoComo ()

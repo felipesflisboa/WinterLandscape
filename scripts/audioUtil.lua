@@ -8,10 +8,11 @@ local lastMusic=nil
 local lastMusicName=nil
 local seTable={}
 
--- If the SE is new, add at seTable for future use
-function AudioUtil.playSE(nameWithExtension)
+-- If the SE is new, add at seTable for future use. Default plays once
+function AudioUtil.playSE(nameWithExtension,loops)
+	loops=loops or 0
 	if seTable[nameWithExtension]==nil then seTable[nameWithExtension] = audio.loadSound(SEDIR..nameWithExtension) end
-	audio.play(seTable[nameWithExtension])
+	audio.play(seTable[nameWithExtension],{loops=loops})
 end
 
 -- Stops all the sound and plays the file name. Default plays at infinite looping
